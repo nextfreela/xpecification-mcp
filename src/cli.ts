@@ -6,6 +6,8 @@
 // `--check` performs a token-validation smoke probe and exits 0/1.
 // `--help` prints usage.
 
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { ConfigError, resolveConfig } from "./config.js";
 import { XpecificationClient } from "./client.js";
 import { McpToolError } from "./errors.js";
@@ -239,11 +241,22 @@ async function runCheck(
 }
 
 // Allow `node cli.js` direct execution while staying importable for tests.
-// `process.argv[1]` is the entry script; matching it against import.meta.url
-// covers both `node dist/cli.js` and `npx -y @xpecification/mcp` (where the
-// shim resolves to the same dist/cli.js path).
-const entryUrl = `file://${process.argv[1] ?? ""}`;
-if (import.meta.url === entryUrl) {
+// We compare realpaths because `npx -y @xpecification/mcp` invokes this file
+// through the bin symlink at `node_modules/.bin/xpecification-mcp` — without
+// realpath resolution, `process.argv[1]` (the symlink) would never equal
+// `import.meta.url` (the real path), and `main()` would silently never run.
+function isEntryPoint(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    const entryPath = realpathSync(process.argv[1]);
+    const modulePath = fileURLToPath(import.meta.url);
+    return entryPath === modulePath;
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint()) {
   main().then(
     (code) => process.exit(code),
     (err) => {

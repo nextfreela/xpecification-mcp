@@ -1,6 +1,6 @@
 {
   "name": "@nextfreelatech/xpecification-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model Context Protocol server for Xpecification — exposes a workspace's specifications to local AI coding agents.",
   "type": "module",
   "license": "Apache-2.0",
