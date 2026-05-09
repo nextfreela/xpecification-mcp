@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Build MCP package
-        run: npm run mcp:build
+        run: npm run build
 
       # Skip if the version in package.json was already published. Lets
       # README-only edits inside packages/mcp/ trigger the workflow without
