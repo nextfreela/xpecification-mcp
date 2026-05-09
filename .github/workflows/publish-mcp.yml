@@ -1,0 +1,70 @@
+name: Publish @nextfreelatech/xpecification-mcp
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+# Provenance attestations need an OIDC token. `contents: read` is enough
+# for checkout. Nothing else gets written.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      # The MCP package's TypeScript build resolves `@modelcontextprotocol/sdk`,
+      # `zod`, and `typescript` itself from the root `node_modules` — there is
+      # no workspace setup, just a shared install. So we ci at the root.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build MCP package
+        run: npm run mcp:build
+
+      # Skip if the version in package.json was already published. Lets
+      # README-only edits inside packages/mcp/ trigger the workflow without
+      # failing on a duplicate publish.
+      - name: Check whether version is already published
+        id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "name=$NAME"       >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already on npm — skipping publish."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "$NAME@$VERSION not yet published — will publish."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.check.outputs.skip == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check.outputs.skip }}" = "true" ]; then
+            echo "Skipped: ${{ steps.check.outputs.name }}@${{ steps.check.outputs.version }} already published." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Published ${{ steps.check.outputs.name }}@${{ steps.check.outputs.version }} to npm." >> "$GITHUB_STEP_SUMMARY"
+          fi

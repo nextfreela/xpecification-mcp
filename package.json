@@ -1,0 +1,34 @@
+{
+  "name": "@nextfreelatech/xpecification-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Xpecification — exposes a workspace's specifications to local AI coding agents.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.22"
+  },
+  "bin": {
+    "xpecification-mcp": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nextfreela/xpecification-mcp.git",
+    "directory": "."
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  }
+}
