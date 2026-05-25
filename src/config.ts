@@ -19,12 +19,12 @@
 //   1. `--api-url` command-line flag (parsed in cli.ts)
 //   2. `apiUrl` in `.xpec.json`
 //   3. `XPEC_API_URL` environment variable
-//   4. https://app.xpec.com (default)
+//   4. https://xpec.app (default)
 
 import { readFileSync } from "node:fs";
 import { resolve as resolvePath } from "node:path";
 
-export const DEFAULT_API_URL = "https://app.xpec.com";
+export const DEFAULT_API_URL = "https://xpec.app";
 export const PROJECT_CONFIG_FILENAME = ".xpec.json";
 
 export type BindingSource = "argument" | "config-file" | "env" | "none";
